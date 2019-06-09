@@ -8,18 +8,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PaymentProcessor {
+    private ContextService ctx;
+    public PaymentProcessor(ContextService ctx) {
+        this.ctx = ctx;
+    }
 
-    public void process(ContextService ctx) throws IOException {
-        OfficeService officeService = new OfficeService(ctx.getOfficesFileName());
+    public void process() throws IOException {
+        OfficeNameProvider officeNameProvider = new OfficeNameProvider(ctx.getOfficesFileName());
         List<Payment> paymentList = new ArrayList<>();
 
-        PaymentSender paymentSender = new PaymentSender(ctx.getUrl());
-        for (int i=0; i<ctx.getN(); i++) {
-            Payment payment = PaymentGenerator.generatePayment(officeService.getRandomOffice());
-            if (paymentSender.sendPayment(payment))
-                paymentList.add(payment);
+        try(PaymentSender paymentSender = new PaymentSender(ctx.getUrl())) {
+            for (int i = 0; i < ctx.getN(); i++) {
+                Payment payment = PaymentGenerator.generatePayment(officeNameProvider.getRandomOffice());
+                if (paymentSender.sendPayment(payment))
+                    paymentList.add(payment);
+            }
+            PaymentSaveService.save(ctx.getPaymentsFileName(), paymentList);
         }
-        PaymentSaveService.save(ctx.getPaymentsFileName(), paymentList);
     }
 
 }

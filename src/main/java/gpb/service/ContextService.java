@@ -17,7 +17,7 @@ public class ContextService {
         return isValid;
     }
 
-    public void check(String[] args) {
+    private void check(String[] args) {
         isValid = true;
         if (args.length < 4) {
             isValid = false;
